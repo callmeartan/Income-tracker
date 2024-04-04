@@ -12,6 +12,28 @@ from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 
 
+class UserCredentials:
+    def __init__(self):
+        self.credentials = self.load_credentials()
+
+    def load_credentials(self):
+        try:
+            with open("credentials.json", "r") as file:
+                return json.load(file)
+        except (FileNotFoundError, json.JSONDecodeError):
+            return {"username": "admin", "password": "admin"}  # Default credentials
+
+    def save_credentials(self):
+        with open("credentials.json", "w") as file:
+            json.dump(self.credentials, file, indent=4)
+
+    def validate_login(self, username, password):
+        return username == self.credentials["username"] and password == self.credentials["password"]
+
+    def update_credentials(self, username, password):
+        self.credentials = {"username": username, "password": password}
+        self.save_credentials()
+
 def export_to_pdf(data, filename='export.pdf'):
     c = canvas.Canvas(filename, pagesize=letter)
     width, height = letter
@@ -67,6 +89,7 @@ class IncomeTracker(QMainWindow):
     def __init__(self, data):
         super().__init__()
         self.data = data
+        self.user_credentials = UserCredentials()
 
         self.setWindowTitle("Income Tracker")
         self.setFixedSize(QSize(400, 400))
@@ -133,11 +156,46 @@ class IncomeTracker(QMainWindow):
     def login(self):
         username = self.username_entry.text()
         password = self.password_entry.text()
-
-        if username == "admin" and password == "admin":
+        if self.user_credentials.validate_login(username, password):
             self.setup_main_menu()
         else:
             self.login_status_message.setText("<font color='red'>Invalid username or password.</font>")
+
+    def setup_user_settings(self):
+        self.setWindowTitle("User Settings")
+
+        settings_frame = QWidget()
+        settings_layout = QVBoxLayout()
+        settings_frame.setLayout(settings_layout)
+
+        # Username
+        new_username_entry = QLineEdit()
+        new_username_entry.setPlaceholderText("New username")
+        self.add_form_field(settings_layout, "New Username:", new_username_entry)
+
+        # Password
+        new_password_entry = QLineEdit()
+        new_password_entry.setPlaceholderText("New password")
+        new_password_entry.setEchoMode(QLineEdit.Password)
+        self.add_form_field(settings_layout, "New Password:", new_password_entry)
+
+        update_button = self.create_button("Update Credentials",
+                                           lambda: self.update_credentials(new_username_entry.text(),
+                                                                           new_password_entry.text()))
+        settings_layout.addWidget(update_button)
+
+        back_button = self.create_button("Back to Menu", self.setup_main_menu)
+        settings_layout.addWidget(back_button)
+
+        self.setCentralWidget(settings_frame)
+
+    def update_credentials(self, username, password):
+        if username and password:  # Simple validation
+            self.user_credentials.update_credentials(username, password)
+            QMessageBox.information(self, "Success", "Credentials updated successfully.")
+            self.setup_login_page()
+        else:
+            QMessageBox.critical(self, "Error", "Username and password cannot be empty.")
 
     def setup_main_menu(self):
         main_menu_frame = QWidget()
@@ -160,9 +218,13 @@ class IncomeTracker(QMainWindow):
             exchange_label.setStyleSheet("font-size: 16px; color: #EEEEEE;")
             main_menu_layout.addWidget(exchange_label)
 
-        button_texts = ["Add Income", "Display Income", "Total Income", "Export to PDF", "Exit"]
+        button_texts = ["Add Income", "Display Income", "Total Income", "Export to PDF", "User Settings", "Exit"]
         for text in button_texts:
-            button = self.create_button(text, getattr(self, f'action_{text.replace(" ", "_").lower()}'))
+            method_name = f'action_{text.replace(" ", "_").lower()}'
+            # Handle the special case for "User Settings"
+            if text == "User Settings":
+                method_name = 'setup_user_settings'
+            button = self.create_button(text, getattr(self, method_name))
             main_menu_layout.addWidget(button)
 
         self.setCentralWidget(main_menu_frame)
