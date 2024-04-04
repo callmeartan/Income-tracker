@@ -1,0 +1,26 @@
+QMainWindow {
+    background-color: #131313; /* Dark background similar to ChatGPT interface */
+}
+QLabel, QPushButton {
+    font-family: 'Segoe UI', Arial, sans-serif; /* Using a font similar to what's found in web interfaces */
+    font-size: 16px; /* Slightly larger font for better readability */
+    color: #E4E6EB; /* Light grey text color for readability against dark background */
+}
+QPushButton {
+    background-color: #4F6EFD; /* Blue color for buttons to stand out */
+    border: none; /* Modern buttons often don't have borders */
+    border-radius: 4px; /* Rounded corners for a softer look */
+    padding: 10px 15px; /* More padding for a larger clickable area */
+    font-weight: 500; /* Medium font weight for button text */
+}
+QPushButton:hover {
+    background-color: #657ECF; /* Slightly lighter blue on hover for visual feedback */
+}
+QLineEdit {
+    border: 1px solid #555; /* Subtle border color for input fields */
+    border-radius: 4px; /* Consistent rounded corners */
+    padding: 8px; /* Adequate padding for text input */
+    background-color: #1C1C1C; /* Slightly lighter than main background for distinction */
+    color: #E4E6EB; /* Consistent text color with labels and buttons */
+    font-size: 16px; /* Consistent font size for better readability */
+}
