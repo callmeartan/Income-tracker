@@ -4,7 +4,9 @@ To run the Income Tracker, you'll need to have Python installed on your machine 
 Clone this repository or download the source code.
 Install the required dependencies:
 
-pip install PyQt5 yahoo_fin
+pip install PyQt5
+pip install yahoo_fin
+pip install reportlab
 
 Launch the application:
 python Income_tracker.py
