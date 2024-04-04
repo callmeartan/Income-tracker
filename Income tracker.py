@@ -134,7 +134,7 @@ class IncomeTracker(QMainWindow):
         username = self.username_entry.text()
         password = self.password_entry.text()
 
-        if username == "artan" and password == "5555":
+        if username == "admin" and password == "admin":
             self.setup_main_menu()
         else:
             self.login_status_message.setText("<font color='red'>Invalid username or password.</font>")
