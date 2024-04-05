@@ -21,7 +21,7 @@ class UserCredentials:
             with open("credentials.json", "r") as file:
                 return json.load(file)
         except (FileNotFoundError, json.JSONDecodeError):
-            return {"username": "admin", "password": "admin"}  # Default credentials
+            return {"username": "admin", "password": "admin"}
 
     def save_credentials(self):
         with open("credentials.json", "w") as file:
@@ -314,35 +314,34 @@ class IncomeTracker(QMainWindow):
 
         scroll_area = QScrollArea()
         scroll_area.setWidgetResizable(True)
-        scroll_area.setStyleSheet("background-color: #333;")  # Dark background for the scroll area
+        scroll_area.setStyleSheet("background-color: #333;")
         scroll_widget = QWidget()
         scroll_widget.setLayout(display_layout)
         scroll_area.setWidget(scroll_widget)
 
-        # Adjusted styles for better contrast
         for currency, incomes in self.data.daily_income.items():
             currency_label = QLabel(f"{currency} Incomes:")
             currency_label.setStyleSheet(
-                "font-weight: bold; font-size: 18px; color: #FAFAFA;")  # Light font color for currency label
+                "font-weight: bold; font-size: 18px; color: #FAFAFA;")
             display_layout.addWidget(currency_label)
 
             for index, income in enumerate(incomes):
                 income_layout = QHBoxLayout()
                 income_label = QLabel(f"Date: {income['date']}, Amount: {income['amount']}")
                 income_label.setStyleSheet(
-                    "font-size: 16px; padding: 5px; color: #EEE;")  # Ensuring text is easily readable
+                    "font-size: 16px; padding: 5px; color: #EEE;")
                 delete_button = QPushButton("Delete")
                 delete_button.setStyleSheet(
-                    "font-size: 14px; padding: 5px; background-color: #FF6347; color: white;")  # Delete button styling remains for good contrast
+                    "font-size: 14px; padding: 5px; background-color: #FF6347; color: white;")
                 delete_button.clicked.connect(lambda checked, a=currency, b=index: self.delete_income(a, b))
 
                 income_layout.addWidget(income_label)
                 income_layout.addWidget(delete_button)
 
-                frame = QFrame()  # Use a frame to contain each income layout
+                frame = QFrame()
                 frame.setLayout(income_layout)
                 frame.setStyleSheet(
-                    "background-color: #444; border-radius: 5px; padding: 5px;")  # Slightly lighter frame background for contrast
+                    "background-color: #444; border-radius: 5px; padding: 5px;")
                 display_layout.addWidget(frame)
 
         back_button = self.create_button("Back to Menu", self.setup_main_menu)
