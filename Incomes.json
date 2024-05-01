@@ -1,5 +1,22 @@
 {
-    "USD": [],
-    "TRY": [],
+    "USD": [
+        {
+            "amount": "250",
+            "date": "2024-05-01",
+            "description": "Income May"
+        },
+        {
+            "amount": "50",
+            "date": "2024-05-01",
+            "description": "+"
+        }
+    ],
+    "TRY": [
+        {
+            "amount": "1100",
+            "date": "2024-05-01",
+            "description": "try"
+        }
+    ],
     "EUR": []
 }
