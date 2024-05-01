@@ -1,26 +1,64 @@
-QMainWindow {
-    background-color: #131313; /* Dark background similar to ChatGPT interface */
+/* Global Styles */
+QWidget {
+    background-color: #222831; /* Dark background color */
+    color: #EEEEEE; /* Light text color */
+    font-size: 16px; /* Default font size */
 }
-QLabel, QPushButton {
-    font-family: 'Segoe UI', Arial, sans-serif; /* Using a font similar to what's found in web interfaces */
-    font-size: 16px; /* Slightly larger font for better readability */
-    color: #E4E6EB; /* Light grey text color for readability against dark background */
+
+QLabel {
+    font-size: 18px; /* Larger font size for labels */
 }
+
+QLineEdit, QTextEdit, QDateEdit {
+    background-color: #30475E; /* Input fields background color */
+    color: #EEEEEE; /* Input fields text color */
+    border: 2px solid #76ABAE; /* Input fields border color */
+    border-radius: 5px; /* Rounded corners for input fields */
+    padding: 5px; /* Padding inside input fields */
+}
+
 QPushButton {
-    background-color: #4F6EFD; /* Blue color for buttons to stand out */
-    border: none; /* Modern buttons often don't have borders */
-    border-radius: 4px; /* Rounded corners for a softer look */
-    padding: 10px 15px; /* More padding for a larger clickable area */
-    font-weight: 500; /* Medium font weight for button text */
+    font-size: 16px; /* Button text size */
+    background-color: #76ABAE; /* Button background color */
+    color: #222831; /* Button text color */
+    border: none; /* No button border */
+    padding: 8px 16px; /* Padding inside buttons */
+    border-radius: 5px; /* Rounded corners for buttons */
 }
+
 QPushButton:hover {
-    background-color: #657ECF; /* Slightly lighter blue on hover for visual feedback */
+    background-color: #88cccc; /* Button background color on hover */
 }
-QLineEdit {
-    border: 1px solid #555; /* Subtle border color for input fields */
-    border-radius: 4px; /* Consistent rounded corners */
-    padding: 8px; /* Adequate padding for text input */
-    background-color: #1C1C1C; /* Slightly lighter than main background for distinction */
-    color: #E4E6EB; /* Consistent text color with labels and buttons */
-    font-size: 16px; /* Consistent font size for better readability */
+
+QScrollArea {
+    background-color: #333; /* Scroll area background color */
+}
+
+QFrame {
+    background-color: #444; /* Frame background color */
+    border-radius: 5px; /* Rounded corners for frames */
+    padding: 5px; /* Padding inside frames */
+}
+
+/* Specific Styles */
+QDialog {
+    background-color: #222831; /* Dialog background color */
+    color: #EEEEEE; /* Dialog text color */
+    font-size: 18px; /* Dialog font size */
+}
+
+QMessageBox {
+    background-color: #222831; /* Message box background color */
+    color: #EEEEEE; /* Message box text color */
+    font-size: 18px; /* Message box font size */
+}
+
+/* Specific styles for buttons inside QMessageBox */
+QMessageBox QPushButton {
+    background-color: #76ABAE; /* Button background color */
+    color: #222831; /* Button text color */
+}
+
+QMessageBox QPushButton:hover {
+    background-color: #88cccc; /* Button background color on hover */
 }
