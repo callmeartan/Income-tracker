@@ -4,12 +4,14 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QPushButton, QLin
     QMessageBox, QHBoxLayout, QDateEdit, QFileDialog,QScrollArea,QFrame
 from PyQt5.QtCore import Qt, QSize, QDate
 from PyQt5.QtGui import QCloseEvent
+from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem, QShortcut
+from PyQt5.QtWidgets import QDialog
+from PyQt5.QtGui import QKeySequence
 from datetime import datetime
 from yahoo_fin import stock_info
-from PyQt5.QtWidgets import QShortcut
-from PyQt5.QtGui import QKeySequence
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
+import xml.etree.ElementTree as ET
 
 
 class UserCredentials:
@@ -21,7 +23,7 @@ class UserCredentials:
             with open("credentials.json", "r") as file:
                 return json.load(file)
         except (FileNotFoundError, json.JSONDecodeError):
-            return {"username": "admin", "password": "admin"}  # Default credentials
+            return {"username": "admin", "password": "admin"}
 
     def save_credentials(self):
         with open("credentials.json", "w") as file:
@@ -34,6 +36,7 @@ class UserCredentials:
         self.credentials = {"username": username, "password": password}
         self.save_credentials()
 
+
 def export_to_pdf(data, filename='export.pdf'):
     c = canvas.Canvas(filename, pagesize=letter)
     width, height = letter
@@ -42,12 +45,39 @@ def export_to_pdf(data, filename='export.pdf'):
         record_str = f"Date: {record['date']}, Amount: {record['amount']} {record['currency']}"
         c.drawString(72, y_position, record_str)
     c.save()
+
+
+def export_to_xml(data, filename='export.xml'):
+    root = ET.Element("IncomeData")
+    for currency, incomes in data.daily_income.items():
+        for income in incomes:
+            income_element = ET.SubElement(root, "Income")
+            ET.SubElement(income_element, "Currency").text = currency
+            ET.SubElement(income_element, "Amount").text = income['amount']
+            ET.SubElement(income_element, "Date").text = income['date']
+            ET.SubElement(income_element, "Description").text = income.get('description', '')
+
+    tree = ET.ElementTree(root)
+    tree.write(filename, xml_declaration=True, encoding='utf-8', method="xml")
+
+
+class BalanceDialog(QDialog):
+    def __init__(self, total_income):
+        super().__init__()
+        self.setWindowTitle("Balance")
+        self.setFixedSize(300, 200)
+        layout = QVBoxLayout()
+        for currency, total_amount in total_income.items():
+            label = QLabel(f"{currency}: {total_amount}")
+            layout.addWidget(label)
+        self.setLayout(layout)
+
+
 class IncomeData:
     def __init__(self):
         self.daily_income = {'USD': [], 'TRY': [], 'EUR': []}
         self.exchange_rate = self.fetch_exchange_rate()
         self.load_income_data()
-
 
     def fetch_exchange_rate(self):
         try:
@@ -56,7 +86,6 @@ class IncomeData:
         except Exception as e:
             QMessageBox.critical(None, "Error", f"Failed to fetch exchange rate: {str(e)}")
             return None
-
 
     def add_income(self, currency, amount, date, description=""):
         self.daily_income[currency].append({'amount': amount, 'date': date, 'description': description})
@@ -73,6 +102,9 @@ class IncomeData:
         try:
             with open("Incomes.json", "r") as file:
                 self.daily_income = json.load(file)
+                for currency, incomes in self.daily_income.items():
+                    for income in incomes:
+                        income.setdefault('description', '')
         except FileNotFoundError:
             pass
         except json.JSONDecodeError:
@@ -83,22 +115,16 @@ class IncomeData:
             json.dump(self.daily_income, file, indent=4)
 
 
-
-
 class IncomeTracker(QMainWindow):
     def __init__(self, data):
         super().__init__()
         self.data = data
         self.user_credentials = UserCredentials()
-
         self.setWindowTitle("Income Tracker")
-        self.setFixedSize(QSize(550, 550))
+        self.setFixedSize(QSize(600, 600))
         self.setStyleSheet("background-color: #222831; color: #EEEEEE;")
-
         self.setup_login_page()
 
-    def action_transactions(self):
-        self.action_display_income()
     def get_date(self):
         now = datetime.now()
         return now.strftime("%A, %Y-%m-%d")
@@ -219,7 +245,8 @@ class IncomeTracker(QMainWindow):
             exchange_label.setStyleSheet("font-size: 16px; color: #EEEEEE;")
             main_menu_layout.addWidget(exchange_label)
 
-        button_texts = ["Add Income", "Add Expense", "Transactions", "Total Income", "Export to PDF", "User Settings", "Exit"]
+        button_texts = ["Add Income", "Add Expense", "Transactions", "Balance", "Export to PDF", "Export to XML", "User Settings",
+                        "Exit"]
         for text in button_texts:
             method_name = f'action_{text.replace(" ", "_").lower()}'
             if text == "User Settings":
@@ -237,11 +264,18 @@ class IncomeTracker(QMainWindow):
             QMessageBox.information(self, "Success", "Income deleted successfully.")
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to delete income: {str(e)}")
+
     def action_export_to_pdf(self):
         data_for_pdf = self.get_financial_data_for_pdf()
         filename, _ = QFileDialog.getSaveFileName(self, 'Save File', '', 'PDF files (*.pdf)')
         if filename:
             export_to_pdf(data_for_pdf, filename)
+
+    def action_export_to_xml(self):
+        data_for_xml = self.get_financial_data_for_xml()
+        filename, _ = QFileDialog.getSaveFileName(self, 'Save File', '', 'XML files (*.xml)')
+        if filename:
+            export_to_xml(data_for_xml, filename)
 
     def get_financial_data_for_pdf(self):
         data = []
@@ -250,6 +284,9 @@ class IncomeTracker(QMainWindow):
                 income_with_currency = {**income, 'currency': currency}
                 data.append(income_with_currency)
         return data
+
+    def get_financial_data_for_xml(self):
+        return self.data
 
     def action_add_income(self):
         self.setWindowTitle("Add Income")
@@ -302,19 +339,18 @@ class IncomeTracker(QMainWindow):
 
         self.setCentralWidget(add_income_frame)
 
-
     def submit_income(self):
         currency = self.currency_input.text().upper()
         amount = self.amount_input.text()
         date = self.date_input.date().toString("yyyy-MM-dd")
+        description = self.description_input.text()  # Get description input
 
         if currency in ["USD", "TRY", "EUR"] and amount.replace('.', '', 1).isdigit():
-            self.data.add_income(currency, amount, date)
+            self.data.add_income(currency, amount, date, description)  # Pass description to add_income
             QMessageBox.information(self, "Success", "Income added successfully.")
             self.setup_main_menu()
         else:
             QMessageBox.critical(self, "Error", "Invalid input. Please check the currency and amount.")
-
 
     def action_add_expense(self):
         self.setWindowTitle("Add Expense")
@@ -380,7 +416,7 @@ class IncomeTracker(QMainWindow):
         else:
             QMessageBox.critical(self, "Error", "Invalid input. Please check the currency and amount.")
 
-    def action_display_income(self):
+    def action_transactions(self):
         self.setWindowTitle("Transactions")
 
         display_frame = QWidget()
@@ -402,13 +438,18 @@ class IncomeTracker(QMainWindow):
 
             for index, income in enumerate(incomes):
                 income_layout = QHBoxLayout()
-                income_info = f"Date: {income['date']}, Amount: {income['amount']}, Description: {income.get('description', '')}"
+                income_info = f"Date: {income['date']}, Amount: {income['amount']}"
+                if 'description' in income:
+                    income_info += f", Description: {income['description']}"
                 income_label = QLabel(income_info)
                 income_label.setStyleSheet(
                     "font-size: 16px; padding: 5px; color: #EEE;")  # Ensuring text is easily readable
+
+                # Create and style the delete button
                 delete_button = QPushButton("Delete")
                 delete_button.setStyleSheet(
                     "font-size: 14px; padding: 5px; background-color: #FF6347; color: white;")  # Delete button styling remains for good contrast
+                delete_button.setFixedSize(80, 30)  # Set a fixed size for the delete button
                 delete_button.clicked.connect(lambda checked, a=currency, b=index: self.delete_income(a, b))
 
                 income_layout.addWidget(income_label)
@@ -425,19 +466,17 @@ class IncomeTracker(QMainWindow):
 
         self.setCentralWidget(scroll_area)
 
-    def action_total_income(self):
+    def action_balance(self):
         total_income = self.data.get_total_income()
-        message = "Total Income:\n" + "\n".join([f"{currency}: {amount}" for currency, amount in total_income.items()])
-        QMessageBox.information(self, "Total Income", message)
-
-
-
+        balance_dialog = BalanceDialog(total_income)
+        balance_dialog.exec_()
     def action_exit(self):
         self.close()
 
     def closeEvent(self, event: QCloseEvent):
         self.data.save_income_data()
         event.accept()
+
 
 
 if __name__ == "__main__":
