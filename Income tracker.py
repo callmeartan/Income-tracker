@@ -121,7 +121,7 @@ class IncomeTracker(QMainWindow):
         self.data = data
         self.user_credentials = UserCredentials()
         self.setWindowTitle("Income Tracker")
-        self.setFixedSize(QSize(600, 600))
+        self.setFixedSize(QSize(650, 650))
         self.setStyleSheet("background-color: #222831; color: #EEEEEE;")
         self.setup_login_page()
 
@@ -461,11 +461,30 @@ class IncomeTracker(QMainWindow):
                     "background-color: #444; border-radius: 5px; padding: 5px;")  # Slightly lighter frame background for contrast
                 display_layout.addWidget(frame)
 
+        # Add reset button
+        reset_button = self.create_button("Reset Transactions", self.reset_transactions)
+        display_layout.addWidget(reset_button)
+
         back_button = self.create_button("Back to Menu", self.setup_main_menu)
         display_layout.addWidget(back_button)
 
         self.setCentralWidget(scroll_area)
 
+    def reset_transactions(self):
+        # Display confirmation dialog
+        confirmation = QMessageBox.question(self, "Confirmation",
+                                            "Are you sure you want to reset all transactions and balance?",
+                                            QMessageBox.Yes | QMessageBox.No)
+        if confirmation == QMessageBox.Yes:
+            # Clear all transactions
+            self.data.daily_income = {'USD': [], 'TRY': [], 'EUR': []}
+            self.data.save_income_data()
+
+            # Show message to indicate reset
+            QMessageBox.information(self, "Success", "Transactions and balance reset successfully.")
+
+            # Refresh the display
+            self.action_transactions()
     def action_balance(self):
         total_income = self.data.get_total_income()
         balance_dialog = BalanceDialog(total_income)
