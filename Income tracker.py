@@ -260,7 +260,7 @@ class IncomeTracker(QMainWindow):
         try:
             del self.data.daily_income[currency][index]
             self.data.save_income_data()  # Save changes to the file
-            self.action_display_income()  # Refresh the display
+            self.action_transactions()  # Refresh the display
             QMessageBox.information(self, "Success", "Income deleted successfully.")
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to delete income: {str(e)}")
@@ -448,17 +448,17 @@ class IncomeTracker(QMainWindow):
                 # Create and style the delete button
                 delete_button = QPushButton("Delete")
                 delete_button.setStyleSheet(
-                    "font-size: 14px; padding: 5px; background-color: #FF6347; color: white;")  # Delete button styling remains for good contrast
+                    "font-size: 14px; padding: 5px; background-color: #FF6347; color: white;")
                 delete_button.setFixedSize(80, 30)  # Set a fixed size for the delete button
                 delete_button.clicked.connect(lambda checked, a=currency, b=index: self.delete_income(a, b))
 
                 income_layout.addWidget(income_label)
                 income_layout.addWidget(delete_button)
 
-                frame = QFrame()  # Use a frame to contain each income layout
+                frame = QFrame()
                 frame.setLayout(income_layout)
                 frame.setStyleSheet(
-                    "background-color: #444; border-radius: 5px; padding: 5px;")  # Slightly lighter frame background for contrast
+                    "background-color: #444; border-radius: 5px; padding: 5px;")
                 display_layout.addWidget(frame)
 
         # Add reset button
@@ -485,17 +485,18 @@ class IncomeTracker(QMainWindow):
 
             # Refresh the display
             self.action_transactions()
+
     def action_balance(self):
         total_income = self.data.get_total_income()
         balance_dialog = BalanceDialog(total_income)
         balance_dialog.exec_()
+
     def action_exit(self):
         self.close()
 
     def closeEvent(self, event: QCloseEvent):
         self.data.save_income_data()
         event.accept()
-
 
 
 if __name__ == "__main__":
